@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Amazon UK GIL — Test Storefront</title>
+
+<style>
+  :root {
+    --navy: #131a22;
+    --navy-2: #232f3e;
+    --orange: #ff9900;
+    --yellow: #ffd814;
+    --yellow-dark: #f7ca00;
+    --ink: #0f1111;
+    --ink-soft: #565959;
+    --line: #d5d9d9;
+    --bg: #f7f7f7;
+    --card: #ffffff;
+    --success: #067d62;
+    --danger: #c40000;
+    --warn: #b06000;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Amazon Ember", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  a { color: #007185; text-decoration: none; }
+  a:hover { color: #c7511f; text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.9em; background: #eee; padding: 1px 5px; border-radius: 3px; }
+
+  .gil-header { background: var(--navy); color: #fff; }
+  .gil-header-inner {
+    max-width: 960px; margin: 0 auto; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .gil-logo { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .gil-logo:hover { color: #fff; text-decoration: none; }
+  .gil-logo-dot { color: var(--orange); }
+  .gil-logo-uk { font-size: 13px; font-weight: 400; color: #ccc; margin-left: 4px; }
+  .gil-header-nav a { color: #ddd; font-size: 13px; }
+  .gil-header-nav a:hover { color: #fff; }
+
+  .gil-main { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+  .gil-page { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 28px; }
+  .gil-page h1 { font-size: 24px; margin: 0 0 6px; font-weight: 500; }
+  .gil-sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; }
+
+  .gil-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 22px; padding: 11px 20px; font-size: 14px; font-weight: 500;
+    border: 1px solid transparent; cursor: pointer;
+  }
+  .gil-btn-primary { background: var(--yellow); border-color: #fcd200; color: var(--ink); }
+  .gil-btn-primary:hover { background: var(--yellow-dark); }
+  .gil-btn-affirm { background: #0fa0ea; border-color: #0c8ed1; color: #fff; width: 100%; margin-top: 8px; }
+  .gil-btn-affirm:hover { background: #0c8ed1; }
+  .gil-btn-danger { background: #fff; border-color: var(--danger); color: var(--danger); margin-top: 8px; }
+  .gil-btn-danger:hover { background: #fff5f5; }
+  .gil-btn-ghost { background: #fff; border-color: var(--line); color: var(--ink); }
+  .gil-btn-ghost:hover { background: #f0f2f2; }
+  .gil-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+  .gil-link-btn { background: transparent; border: 0; color: #007185; font-size: 13px; cursor: pointer; padding: 0; }
+  .gil-link-btn:hover { text-decoration: underline; }
+
+  .gil-cart-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  .gil-cart-table th { text-align: left; font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
+  .gil-cart-table td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
+  .gil-cart-table input[type=text] { width: 100%; }
+  .gil-cart-table input[type=number] { width: 90px; }
+  .gil-cart-total { font-size: 16px; margin: 14px 0 20px; }
+
+  input[type=text], input[type=tel], input[type=number], input[type=password] {
+    padding: 8px 10px; border: 1px solid #a6a6a6; border-radius: 4px; font-size: 14px; font-family: inherit;
+  }
+  input:focus { outline: 2px solid #0fa0ea; outline-offset: -1px; }
+  input[disabled] { background: #f0f0f0; color: var(--ink-soft); }
+
+  .gil-form { display: flex; flex-direction: column; gap: 14px; max-width: 420px; }
+  .gil-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .gil-order-recap { background: #f0f8ff; border: 1px solid #cbe6fb; border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+  .gil-manual-actions { display: flex; gap: 10px; }
+  .gil-settings-block { display: flex; gap: 20px; margin-bottom: 20px; }
+  .gil-radio-label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; }
+  .gil-toggle-label { font-size: 12px; color: var(--ink-soft); }
+
+  .gil-error { background: #fff2f2; border: 1px solid #eb5757; color: var(--danger); padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-top: 14px; white-space: pre-wrap; word-break: break-word; }
+  .gil-warn { background: #fff8ea; border: 1px solid #f0c14b; color: var(--warn); padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; }
+
+  .gil-confirm { text-align: center; }
+  .gil-icon-ok {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--success); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 16px;
+  }
+  .gil-icon-ok.gil-icon-muted { background: var(--ink-soft); }
+  .gil-spinner {
+    width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--orange);
+    border-radius: 50%; margin: 20px auto; animation: gil-spin 0.8s linear infinite;
+  }
+  @keyframes gil-spin { to { transform: rotate(360deg); } }
+
+  .gil-debug { text-align: left; margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .gil-debug summary { cursor: pointer; font-size: 13px; color: var(--ink-soft); }
+  .gil-debug pre, .gil-debug-pre {
+    background: #0f1111; color: #d4f7dc; font-size: 12px; padding: 14px; border-radius: 6px;
+    overflow-x: auto; margin-top: 10px; max-height: 360px;
+  }
+
+  .gil-toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+  .gil-toast { background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 6px; font-size: 13px; box-shadow: 0 8px 30px rgba(0,0,0,0.25); max-width: 340px; }
+  .gil-toast.error { background: var(--danger); }
+
+  .gil-footer { text-align: center; color: var(--ink-soft); font-size: 12px; padding: 24px 20px 60px; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="gil-toast-wrap" id="gil-toasts"></div>
+
+<script>
+/* ============================================================
+   Amazon UK GIL test storefront — single-file SPA.
+   No backend of its own; all Affirm calls go through the
+   password-gated Cloudflare Worker at /amazon-gil/api/*, which
+   injects production Basic Auth server-side. This page never
+   holds any Affirm credentials.
+
+   IMPORTANT: this file is only functional when loaded through
+   that Worker (same-origin requirement — see worker.js). If it's
+   ever loaded directly from GitHub Pages, the bootstrap check at
+   the bottom of this script replaces the app with a notice.
+   ============================================================ */
+
+/* ---------- storage layer ---------- */
+const GilStore = {
+  _read(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+    catch { return fallback; }
+  },
+  _write(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
+
+  getCartItems() {
+    return this._read("gil.cart", [{ id: 1, name: "Test item", price: 249.99, qty: 1 }]);
+  },
+  setCartItems(items) { this._write("gil.cart", items); },
+
+  getOfferSettings() {
+    return this._read("gil.offerSettings", {
+      installmentType: "PayOverTime",
+      offers: [
+        { id: 1, months: 3, interestBearing: false, rate: 0, funded: "affirm", subsidy: 0 },
+        { id: 2, months: 12, interestBearing: true, rate: 19.9, funded: "affirm", subsidy: 0 }
+      ]
+    });
+  },
+  setOfferSettings(settings) { this._write("gil.offerSettings", settings); },
+
+  getApplication(appId) {
+    const all = this._read("gil.applications", {});
+    return all[appId] || null;
+  },
+  saveApplication(record) {
+    const all = this._read("gil.applications", {});
+    all[record.applicationId] = record;
+    this._write("gil.applications", all);
+    return record;
+  },
+  updateApplication(appId, patch) {
+    const all = this._read("gil.applications", {});
+    all[appId] = { ...(all[appId] || { applicationId: appId }), ...patch };
+    this._write("gil.applications", all);
+    return all[appId];
+  }
+};
+
+/* ---------- helpers ---------- */
+const $ = sel => document.querySelector(sel);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtGBP = n => "£" + Number(n || 0).toFixed(2);
+const cartSubtotal = items => items.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 0), 0);
+
+// Forces the Amazon-branded ("Rufus") hosted checkout experience. Our test
+// merchant's public key isn't in web-ux's RUFUS_MERCHANT_PUBLIC_KEYS
+// allowlist, so without this the hosted flow renders Affirm's generic
+// styling instead. `cnVmdXM=1` is base64("rufus") + "=1", the literal
+// substring `isRufus()` checks for in the URL query string.
+function withRufusFlag(url) {
+  try {
+    const u = new URL(url);
+    u.searchParams.set("cnVmdXM", "1");
+    return u.toString();
+  } catch {
+    return url + (url.includes("?") ? "&" : "?") + "cnVmdXM=1";
+  }
+}
+
+/* financing_cost sign is the funding-source signal: 0 = Affirm funded,
+   negative = merchant (Amazon) funded, per PBA. */
+function buildOfferDetails(offers) {
+  return offers.map(o => ({
+    number_of_installments: Number(o.months) || 1,
+    rate_of_interest: o.interestBearing ? Number(o.rate) || 0 : 0.0,
+    financing_cost: {
+      value: o.funded === "merchant" ? -Math.abs(Number(o.subsidy) || 0) : 0.0,
+      unit: "GBP"
+    }
+  }));
+}
+
+function toastGil(msg, kind = "info") {
+  const el = document.createElement("div");
+  el.className = "gil-toast " + kind;
+  el.textContent = msg;
+  $("#gil-toasts").appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+/* ---------- Affirm API (same-origin, via the gating Worker) ---------- */
+async function gilFetch(path, { method = "POST", body = null } = {}) {
+  try {
+    const r = await fetch(path, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined,
+      credentials: "same-origin"
+    });
+    const text = await r.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { _raw: text }; }
+    return { ok: r.ok, status: r.status, data };
+  } catch (e) {
+    return { ok: false, status: 0, data: { error: String(e) } };
+  }
+}
+
+/* ============================================================
+   Router (hash-based)
+   ============================================================ */
+const GIL_ROUTES = [
+  { match: /^#?\/?$/,                          view: viewGilHome },
+  { match: /^#\/checkout$/,                    view: viewGilCheckout },
+  { match: /^#\/confirm\/([^/]+)\/([^/]+)/,     view: viewGilConfirm },
+  { match: /^#\/cancel\/([^/]+)/,               view: viewGilCancel },
+  { match: /^#\/manual$/,                       view: viewGilManual },
+  { match: /^#\/settings$/,                     view: viewGilSettings }
+];
+
+function renderGilRoute() {
+  const hashPath = (window.location.hash || "#/").split("?")[0];
+  for (const r of GIL_ROUTES) {
+    const m = hashPath.match(r.match);
+    if (m) { r.view(...m.slice(1)); window.scrollTo(0, 0); return; }
+  }
+  viewGilHome();
+}
+window.addEventListener("hashchange", renderGilRoute);
+
+/* ============================================================
+   Shared chrome
+   ============================================================ */
+function gilHeader() {
+  return `
+    <header class="gil-header">
+      <div class="gil-header-inner">
+        <a href="#/" class="gil-logo">amazon<span class="gil-logo-dot">.</span><span class="gil-logo-uk">co.uk test</span></a>
+        <nav class="gil-header-nav"><a href="#/settings">Offer settings</a> · <a href="#/manual">Manual controls</a></nav>
+      </div>
+    </header>
+  `;
+}
+
+function gilFooter() {
+  return `
+    <footer class="gil-footer">
+      Amazon UK GIL test storefront — internal Affirm tool, not affiliated with or endorsed by Amazon.<br/>
+      Talks to Affirm's <strong>production</strong> Pay-By-Affirm API using a test merchant account.
+    </footer>
+  `;
+}
+
+function renderGilShell(innerHtml) {
+  $("#app").innerHTML = `
+    ${gilHeader()}
+    <main class="gil-main">${innerHtml}</main>
+    ${gilFooter()}
+  `;
+}
+
+/* ============================================================
+   Views
+   ============================================================ */
+
+/* ----- Home: editable cart ----- */
+function viewGilHome() {
+  const items = GilStore.getCartItems();
+
+  renderGilShell(`
+    <div class="gil-page">
+      <h1>Your test cart</h1>
+      <p class="gil-sub">Edit line items to hit a specific loan amount, then continue to checkout.</p>
+      <table class="gil-cart-table">
+        <thead><tr><th>Item</th><th>Price (GBP)</th><th>Qty</th><th></th></tr></thead>
+        <tbody id="cart-rows">
+          ${items.map(cartRowHtml).join("")}
+        </tbody>
+      </table>
+      <button class="gil-btn gil-btn-ghost" id="add-row" type="button">+ Add item</button>
+      <div class="gil-cart-total">Subtotal: <strong id="cart-subtotal">${fmtGBP(cartSubtotal(items))}</strong></div>
+      <button class="gil-btn gil-btn-primary" id="to-checkout" type="button">Proceed to checkout</button>
+    </div>
+  `);
+
+  function readRows() {
+    return [...document.querySelectorAll("#cart-rows tr")].map(row => ({
+      id: Number(row.dataset.id),
+      name: row.querySelector("[data-f=name]").value || "Item",
+      price: Number(row.querySelector("[data-f=price]").value) || 0,
+      qty: Math.max(1, Number(row.querySelector("[data-f=qty]").value) || 1)
+    }));
+  }
+  function refreshSubtotal() {
+    $("#cart-subtotal").textContent = fmtGBP(cartSubtotal(readRows()));
+  }
+
+  document.querySelectorAll("#cart-rows input").forEach(inp => inp.addEventListener("input", refreshSubtotal));
+
+  document.querySelectorAll("[data-remove-row]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const remaining = readRows().filter(r => r.id !== Number(btn.dataset.removeRow));
+      GilStore.setCartItems(remaining.length ? remaining : [{ id: Date.now(), name: "Item", price: 0, qty: 1 }]);
+      viewGilHome();
+    });
+  });
+
+  $("#add-row").addEventListener("click", () => {
+    const rows = readRows();
+    rows.push({ id: Date.now(), name: "", price: 0, qty: 1 });
+    GilStore.setCartItems(rows);
+    viewGilHome();
+  });
+
+  $("#to-checkout").addEventListener("click", () => {
+    const rows = readRows();
+    if (!rows.length || cartSubtotal(rows) <= 0) {
+      toastGil("Add at least one item with a price greater than 0", "error");
+      return;
+    }
+    GilStore.setCartItems(rows);
+    window.location.hash = "#/checkout";
+  });
+}
+
+function cartRowHtml(it) {
+  return `
+    <tr data-id="${it.id}">
+      <td><input type="text" data-f="name" value="${escapeHtml(it.name)}" placeholder="Item name" /></td>
+      <td><input type="number" data-f="price" min="0" step="0.01" value="${it.price}" /></td>
+      <td><input type="number" data-f="qty" min="1" step="1" value="${it.qty}" /></td>
+      <td><button class="gil-link-btn" type="button" data-remove-row="${it.id}">Remove</button></td>
+    </tr>
+  `;
+}
+
+/* ----- Checkout: UK address form (no preset values) ----- */
+function viewGilCheckout() {
+  const items = GilStore.getCartItems();
+  const subtotal = cartSubtotal(items);
+  if (!items.length || subtotal <= 0) { window.location.hash = "#/"; return; }
+
+  renderGilShell(`
+    <div class="gil-page">
+      <h1>Enter a new delivery address</h1>
+      <div class="gil-order-recap">
+        Order total: <strong>${fmtGBP(subtotal)}</strong> · ${items.length} item${items.length === 1 ? "" : "s"}
+        &nbsp;·&nbsp; <a href="#/">Edit cart</a>
+        &nbsp;·&nbsp; <a href="#/settings">Edit offers</a>
+      </div>
+      <form id="gil-address-form" class="gil-form">
+        <label>Country/Region
+          <input type="text" value="United Kingdom" disabled />
+        </label>
+        <label>Full name (first name and surname)
+          <input type="text" id="f-name" autocomplete="off" required />
+        </label>
+        <label>Phone number
+          <input type="tel" id="f-phone" placeholder="Your 10 or 9 digit phone number" autocomplete="off" required />
+        </label>
+        <label>Postcode
+          <input type="text" id="f-postcode" placeholder="Enter your area postcode" autocomplete="off" required />
+        </label>
+        <label>Address Line 1 (or Company Name)
+          <input type="text" id="f-line1" autocomplete="off" required />
+        </label>
+        <label>Address line 2 (optional)
+          <input type="text" id="f-line2" autocomplete="off" />
+        </label>
+        <label>Town/City
+          <input type="text" id="f-city" autocomplete="off" required />
+        </label>
+        <label>County (if applicable)
+          <input type="text" id="f-county" autocomplete="off" />
+        </label>
+        <button type="submit" class="gil-btn gil-btn-affirm">Continue with Pay by Affirm</button>
+      </form>
+      <div id="gil-error" class="gil-error" style="display:none;"></div>
+    </div>
+  `);
+
+  $("#gil-address-form").addEventListener("submit", e => {
+    e.preventDefault();
+    submitGilCheckout(items, subtotal);
+  });
+}
+
+async function submitGilCheckout(items, subtotal) {
+  const form = $("#gil-address-form");
+  const btn = form.querySelector("button[type=submit]");
+  const errEl = $("#gil-error");
+  errEl.style.display = "none";
+
+  const address = {
+    full_name: $("#f-name").value.trim(),
+    phone: $("#f-phone").value.trim(),
+    postcode: $("#f-postcode").value.trim(),
+    line1: $("#f-line1").value.trim(),
+    line2: $("#f-line2").value.trim(),
+    city: $("#f-city").value.trim(),
+    county: $("#f-county").value.trim()
+  };
+  if (!address.full_name || !address.phone || !address.postcode || !address.line1 || !address.city) {
+    errEl.textContent = "Please complete all required address fields.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Creating loan application…";
+
+  const applicationId = "amzn1.gil.test." + crypto.randomUUID();
+  const transactionId = "txn." + crypto.randomUUID();
+  const origin = window.location.origin;
+  const [firstName, ...rest] = address.full_name.split(" ");
+  const lastName = rest.join(" ") || firstName;
+  const offerSettings = GilStore.getOfferSettings();
+
+  const payload = {
+    application_id: applicationId,
+    client_id: "", // server injects the real client_id bound to the configured key pair
+    applicant: {
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: address.phone
+    },
+    loan_amount: { value: Number(subtotal.toFixed(2)), unit: "GBP" },
+    installment_type: offerSettings.installmentType,
+    offer_details: buildOfferDetails(offerSettings.offers),
+    order_ids: [applicationId],
+    redirect_url: {
+      confirm: `${origin}/amazon-gil/return/${applicationId}/${transactionId}`,
+      cancel: `${origin}/amazon-gil/cancel/${applicationId}`
+    },
+    shipping_address: [{
+      address_line_1: address.line1,
+      address_line_2: address.line2,
+      city: address.city,
+      state_or_region: address.county,
+      postal_code: address.postcode,
+      country_code: "GB"
+    }]
+  };
+
+  const result = await gilFetch("/amazon-gil/api/loan-applications", { body: payload });
+
+  if (!result.ok || !result.data || !result.data.redirect_url) {
+    btn.disabled = false;
+    btn.textContent = "Continue with Pay by Affirm";
+    errEl.textContent = `Affirm rejected the request (HTTP ${result.status}):\n${JSON.stringify(result.data, null, 2)}`;
+    errEl.style.display = "block";
+    return;
+  }
+
+  const redirectUrl = withRufusFlag(result.data.redirect_url);
+
+  GilStore.saveApplication({
+    applicationId,
+    transactionId,
+    createdAt: new Date().toISOString(),
+    address,
+    items,
+    subtotal,
+    currency: "GBP",
+    create: { request: payload, response: result.data },
+    redirectUrlUsed: redirectUrl,
+    hold: null,
+    release: null
+  });
+
+  window.location.href = redirectUrl;
+}
+
+/* ----- Confirm: lands here after the real Affirm hosted flow ----- */
+function viewGilConfirm(appId, txnId) {
+  const hashQuery = (window.location.hash.split("?")[1]) || "";
+  const checkoutToken = new URLSearchParams(hashQuery).get("checkout_token") || "";
+  if (checkoutToken) GilStore.updateApplication(appId, { checkoutToken });
+
+  const hasRecord = !!GilStore.getApplication(appId) && !!GilStore.getApplication(appId).createdAt;
+
+  renderGilShell(`
+    <div class="gil-page gil-confirm">
+      <h1>Finalizing your order…</h1>
+      <p class="gil-sub">Authorizing with Affirm (HOLD)…</p>
+      <div class="gil-spinner"></div>
+      ${!hasRecord ? `<div class="gil-warn">No local record found for this application (different browser/device, or storage was cleared) — continuing with the details from the URL only.</div>` : ""}
+    </div>
+  `);
+
+  autoConfirmHold(appId, txnId);
+}
+
+async function autoConfirmHold(appId, txnId, isRetry = false) {
+  const existing = GilStore.getApplication(appId);
+  if (existing && existing.hold && existing.hold.status === "ok") {
+    renderGilResult(appId);
+    return;
+  }
+
+  const result = await gilFetch("/amazon-gil/api/loan-applications/confirm", {
+    body: { application_id: appId, client_id: "", transaction_id: txnId, status: "HOLD" }
+  });
+
+  GilStore.updateApplication(appId, {
+    transactionId: txnId,
+    hold: {
+      firedAt: new Date().toISOString(),
+      status: result.ok ? "ok" : "error",
+      httpStatus: result.status,
+      response: result.data
+    }
+  });
+
+  if (result.ok) {
+    renderGilResult(appId);
+    return;
+  }
+
+  // application_invalid_state can happen if the hosted flow's own
+  // confirmation hasn't fully landed server-side yet — give it one retry.
+  if (!isRetry) {
+    setTimeout(() => autoConfirmHold(appId, txnId, true), 2000);
+    return;
+  }
+
+  renderGilResult(appId, { holdFailed: true });
+}
+
+function renderGilResult(appId, { holdFailed = false } = {}) {
+  const record = GilStore.getApplication(appId) || {};
+  const hold = record.hold || {};
+  const release = record.release || {};
+  const released = release.status === "ok";
+
+  renderGilShell(`
+    <div class="gil-page gil-confirm">
+      ${holdFailed ? `
+        <h1>Authorization failed</h1>
+        <div class="gil-error">HOLD failed (HTTP ${hold.httpStatus || "—"}):\n${escapeHtml(JSON.stringify(hold.response, null, 2))}</div>
+        <button class="gil-btn gil-btn-primary" id="retry-hold" type="button">Retry HOLD</button>
+      ` : `
+        <div class="gil-icon-ok${released ? " gil-icon-muted" : ""}">✓</div>
+        <h1>${released ? "Voided" : "Authorized"}</h1>
+        <p class="gil-sub">Application <code>${escapeHtml(appId)}</code>${released ? " has been voided." : " was placed on HOLD."}</p>
+        ${!released ? `<button class="gil-btn gil-btn-danger" id="void-btn" type="button">Void transaction</button>` : ""}
+      `}
+      <div><a href="#/" class="gil-link-btn">Start a new test order</a></div>
+      <details class="gil-debug">
+        <summary>Debug: raw request/response</summary>
+        <pre>${escapeHtml(JSON.stringify(record, null, 2))}</pre>
+      </details>
+    </div>
+  `);
+
+  const retryBtn = document.getElementById("retry-hold");
+  if (retryBtn) retryBtn.addEventListener("click", () => autoConfirmHold(appId, record.transactionId));
+
+  const voidBtn = document.getElementById("void-btn");
+  if (voidBtn) voidBtn.addEventListener("click", () => doGilRelease(appId, record.transactionId));
+}
+
+async function doGilRelease(appId, txnId) {
+  const btn = document.getElementById("void-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Voiding…"; }
+
+  const result = await gilFetch("/amazon-gil/api/loan-applications/confirm", {
+    body: { application_id: appId, client_id: "", transaction_id: txnId, status: "RELEASE" }
+  });
+
+  GilStore.updateApplication(appId, {
+    release: {
+      firedAt: new Date().toISOString(),
+      status: result.ok ? "ok" : "error",
+      httpStatus: result.status,
+      response: result.data
+    }
+  });
+
+  if (!result.ok) toastGil(`Void failed (HTTP ${result.status}) — see debug panel`, "error");
+  renderGilResult(appId);
+}
+
+/* ----- Cancel: Affirm gave the customer's browser this URL, no params ----- */
+function viewGilCancel(appId) {
+  renderGilShell(`
+    <div class="gil-page gil-confirm">
+      <h1>Checkout cancelled</h1>
+      <p class="gil-sub">No hold was placed for application <code>${escapeHtml(appId)}</code>.</p>
+      <a href="#/checkout" class="gil-btn gil-btn-primary">Try again</a>
+    </div>
+  `);
+}
+
+/* ----- Manual controls: fire HOLD/RELEASE directly ----- */
+function viewGilManual() {
+  renderGilShell(`
+    <div class="gil-page">
+      <h1>Manual controls</h1>
+      <p class="gil-sub">Fire HOLD or RELEASE directly against an application/transaction id — useful if you lost the browser session mid-flow, or are on a different device than the one that started checkout.</p>
+      <form id="manual-form" class="gil-form">
+        <label>Application ID
+          <input type="text" id="m-app" required />
+        </label>
+        <label>Transaction ID
+          <input type="text" id="m-txn" required />
+        </label>
+        <div class="gil-manual-actions">
+          <button type="submit" data-status="HOLD" class="gil-btn gil-btn-primary">Fire HOLD</button>
+          <button type="submit" data-status="RELEASE" class="gil-btn gil-btn-danger">Fire RELEASE</button>
+        </div>
+      </form>
+      <pre id="manual-result" class="gil-debug-pre" style="display:none;"></pre>
+    </div>
+  `);
+
+  $("#manual-form").querySelectorAll("button[type=submit]").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      e.preventDefault();
+      const appId = $("#m-app").value.trim();
+      const txnId = $("#m-txn").value.trim();
+      if (!appId || !txnId) return;
+      const status = btn.dataset.status;
+
+      btn.disabled = true;
+      const result = await gilFetch("/amazon-gil/api/loan-applications/confirm", {
+        body: { application_id: appId, client_id: "", transaction_id: txnId, status }
+      });
+      GilStore.updateApplication(appId, {
+        transactionId: txnId,
+        [status === "HOLD" ? "hold" : "release"]: {
+          firedAt: new Date().toISOString(),
+          status: result.ok ? "ok" : "error",
+          httpStatus: result.status,
+          response: result.data
+        }
+      });
+      btn.disabled = false;
+
+      const pre = $("#manual-result");
+      pre.style.display = "block";
+      pre.textContent = JSON.stringify(result, null, 2);
+    });
+  });
+}
+
+/* ----- Settings: configure installment_type / offer_details ----- */
+function viewGilSettings() {
+  const settings = GilStore.getOfferSettings();
+
+  renderGilShell(`
+    <div class="gil-page">
+      <h1>Offer settings</h1>
+      <p class="gil-sub">Controls the <code>installment_type</code> and <code>offer_details</code> sent on the next checkout. <code>financing_cost = 0</code> means Affirm funded; a negative <code>financing_cost</code> means merchant (Amazon) funded.</p>
+
+      <div class="gil-settings-block">
+        <label class="gil-radio-label"><input type="radio" name="installment-type" value="PayOverTime" ${settings.installmentType === "PayOverTime" ? "checked" : ""} /> PayOverTime</label>
+        <label class="gil-radio-label"><input type="radio" name="installment-type" value="PayIn3" ${settings.installmentType === "PayIn3" ? "checked" : ""} /> Pay in 3</label>
+      </div>
+
+      <table class="gil-cart-table">
+        <thead>
+          <tr><th>Months</th><th>Interest</th><th>Rate %</th><th>Funded by</th><th>Subsidy (£)</th><th></th></tr>
+        </thead>
+        <tbody id="offer-rows">
+          ${settings.offers.map(offerRowHtml).join("")}
+        </tbody>
+      </table>
+      <button class="gil-btn gil-btn-ghost" id="add-offer" type="button" ${settings.offers.length >= 3 ? "disabled" : ""}>+ Add offer (up to 3)</button>
+
+      <div style="margin-top:24px;">
+        <button class="gil-btn gil-btn-primary" id="save-settings" type="button">Save settings</button>
+      </div>
+    </div>
+  `);
+
+  wireOfferRowToggles();
+
+  $("#add-offer").addEventListener("click", () => {
+    const rows = readOfferRows();
+    if (rows.length >= 3) return;
+    rows.push({ id: Date.now(), months: 6, interestBearing: false, rate: 0, funded: "affirm", subsidy: 0 });
+    GilStore.setOfferSettings({ installmentType: currentInstallmentType(), offers: rows });
+    viewGilSettings();
+  });
+
+  document.querySelectorAll("[data-remove-offer]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const rows = readOfferRows().filter(r => r.id !== Number(btn.dataset.removeOffer));
+      GilStore.setOfferSettings({
+        installmentType: currentInstallmentType(),
+        offers: rows.length ? rows : [{ id: Date.now(), months: 3, interestBearing: false, rate: 0, funded: "affirm", subsidy: 0 }]
+      });
+      viewGilSettings();
+    });
+  });
+
+  $("#save-settings").addEventListener("click", () => {
+    const offers = readOfferRows();
+    if (!offers.length) { toastGil("Add at least one offer", "error"); return; }
+    for (const o of offers) {
+      if (!o.months || o.months < 1) { toastGil("Each offer needs a valid number of months", "error"); return; }
+    }
+    GilStore.setOfferSettings({ installmentType: currentInstallmentType(), offers });
+    toastGil("Offer settings saved", "success");
+  });
+}
+
+function currentInstallmentType() {
+  const checked = document.querySelector('input[name="installment-type"]:checked');
+  return checked ? checked.value : "PayOverTime";
+}
+
+function offerRowHtml(o) {
+  return `
+    <tr data-id="${o.id}">
+      <td><input type="number" data-f="months" min="1" step="1" value="${o.months}" style="width:64px;" /></td>
+      <td>
+        <input type="checkbox" data-f="interestBearing" ${o.interestBearing ? "checked" : ""} />
+        <span class="gil-toggle-label">${o.interestBearing ? "Interest bearing" : "0% APR"}</span>
+      </td>
+      <td><input type="number" data-f="rate" min="0" step="0.1" value="${o.rate}" style="width:70px;" ${o.interestBearing ? "" : "disabled"} /></td>
+      <td>
+        <select data-f="funded">
+          <option value="affirm" ${o.funded === "affirm" ? "selected" : ""}>Affirm funded</option>
+          <option value="merchant" ${o.funded === "merchant" ? "selected" : ""}>Merchant funded</option>
+        </select>
+      </td>
+      <td><input type="number" data-f="subsidy" min="0" step="0.01" value="${o.subsidy}" style="width:80px;" ${o.funded === "merchant" ? "" : "disabled"} /></td>
+      <td><button class="gil-link-btn" type="button" data-remove-offer="${o.id}">Remove</button></td>
+    </tr>
+  `;
+}
+
+function readOfferRows() {
+  return [...document.querySelectorAll("#offer-rows tr")].map(row => ({
+    id: Number(row.dataset.id),
+    months: Number(row.querySelector('[data-f="months"]').value) || 1,
+    interestBearing: row.querySelector('[data-f="interestBearing"]').checked,
+    rate: Number(row.querySelector('[data-f="rate"]').value) || 0,
+    funded: row.querySelector('[data-f="funded"]').value,
+    subsidy: Number(row.querySelector('[data-f="subsidy"]').value) || 0
+  }));
+}
+
+function wireOfferRowToggles() {
+  document.querySelectorAll('#offer-rows [data-f="interestBearing"]').forEach(cb => {
+    cb.addEventListener("change", () => {
+      const row = cb.closest("tr");
+      row.querySelector('[data-f="rate"]').disabled = !cb.checked;
+      row.querySelector(".gil-toggle-label").textContent = cb.checked ? "Interest bearing" : "0% APR";
+    });
+  });
+  document.querySelectorAll('#offer-rows [data-f="funded"]').forEach(sel => {
+    sel.addEventListener("change", () => {
+      const row = sel.closest("tr");
+      row.querySelector('[data-f="subsidy"]').disabled = sel.value !== "merchant";
+    });
+  });
+}
+
+/* ============================================================
+   Bootstrap
+   ============================================================ */
+if (window.location.hostname.endsWith("github.io")) {
+  // Loaded directly from GitHub Pages, bypassing the gating Worker.
+  // The API routes reject cross-site calls from this origin anyway, so
+  // don't even pretend the app works — point at the real entry point.
+  document.getElementById("app").innerHTML = `
+    <div class="gil-page" style="max-width:520px;margin:80px auto;text-align:center;">
+      <h1>Wrong URL</h1>
+      <p>This page only works when loaded through the password-gated Cloudflare
+      Worker. Ask whoever shared this tool for the correct URL — it looks like
+      <code>https://&lt;worker-subdomain&gt;.workers.dev/amazon-gil/</code>,
+      not a github.io address.</p>
+    </div>
+  `;
+} else {
+  renderGilRoute();
+}
+</script>
+
+</body>
+</html>
