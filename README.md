@@ -31,7 +31,7 @@ this repo:
 
 ## Using it
 
-1. Go to `https://<worker>.workers.dev/amazon-gil/`, enter the shared password.
+1. Go to `https://<worker>.workers.dev/`, enter the shared password.
 2. Edit the cart to a specific total, adjust offer settings if needed
    (installment terms, interest-bearing vs 0%, Affirm-funded vs
    merchant-funded), then proceed to checkout.

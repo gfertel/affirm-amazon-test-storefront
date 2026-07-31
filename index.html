@@ -127,9 +127,9 @@
 /* ============================================================
    Amazon UK GIL test storefront — single-file SPA.
    No backend of its own; all Affirm calls go through the
-   password-gated Cloudflare Worker at /amazon-gil/api/*, which
-   injects production Basic Auth server-side. This page never
-   holds any Affirm credentials.
+   password-gated Cloudflare Worker at /api/*, which injects
+   production Basic Auth server-side. This page never holds
+   any Affirm credentials.
 
    IMPORTANT: this file is only functional when loaded through
    that Worker (same-origin requirement — see worker.js). If it's
@@ -462,8 +462,8 @@ async function submitGilCheckout(items, subtotal) {
     offer_details: buildOfferDetails(offerSettings.offers),
     order_ids: [applicationId],
     redirect_url: {
-      confirm: `${origin}/amazon-gil/return/${applicationId}/${transactionId}`,
-      cancel: `${origin}/amazon-gil/cancel/${applicationId}`
+      confirm: `${origin}/return/${applicationId}/${transactionId}`,
+      cancel: `${origin}/cancel/${applicationId}`
     },
     shipping_address: [{
       address_line_1: address.line1,
@@ -475,7 +475,7 @@ async function submitGilCheckout(items, subtotal) {
     }]
   };
 
-  const result = await gilFetch("/amazon-gil/api/loan-applications", { body: payload });
+  const result = await gilFetch("/api/loan-applications", { body: payload });
 
   if (!result.ok || !result.data || !result.data.redirect_url) {
     btn.disabled = false;
@@ -531,7 +531,7 @@ async function autoConfirmHold(appId, txnId, isRetry = false) {
     return;
   }
 
-  const result = await gilFetch("/amazon-gil/api/loan-applications/confirm", {
+  const result = await gilFetch("/api/loan-applications/confirm", {
     body: { application_id: appId, client_id: "", transaction_id: txnId, status: "HOLD" }
   });
 
@@ -597,7 +597,7 @@ async function doGilRelease(appId, txnId) {
   const btn = document.getElementById("void-btn");
   if (btn) { btn.disabled = true; btn.textContent = "Voiding…"; }
 
-  const result = await gilFetch("/amazon-gil/api/loan-applications/confirm", {
+  const result = await gilFetch("/api/loan-applications/confirm", {
     body: { application_id: appId, client_id: "", transaction_id: txnId, status: "RELEASE" }
   });
 
@@ -656,7 +656,7 @@ function viewGilManual() {
       const status = btn.dataset.status;
 
       btn.disabled = true;
-      const result = await gilFetch("/amazon-gil/api/loan-applications/confirm", {
+      const result = await gilFetch("/api/loan-applications/confirm", {
         body: { application_id: appId, client_id: "", transaction_id: txnId, status }
       });
       GilStore.updateApplication(appId, {
@@ -804,7 +804,7 @@ if (window.location.hostname.endsWith("github.io")) {
       <h1>Wrong URL</h1>
       <p>This page only works when loaded through the password-gated Cloudflare
       Worker. Ask whoever shared this tool for the correct URL — it looks like
-      <code>https://&lt;worker-subdomain&gt;.workers.dev/amazon-gil/</code>,
+      <code>https://&lt;worker-subdomain&gt;.workers.dev/</code>,
       not a github.io address.</p>
     </div>
   `;
