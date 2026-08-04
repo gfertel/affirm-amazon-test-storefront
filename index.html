@@ -709,6 +709,8 @@ function viewGilSettings() {
     </div>
   `);
 
+  wireOfferRowToggles();
+
   $("#add-offer").addEventListener("click", () => {
     const rows = readOfferRows();
     if (rows.length >= 3) return;
@@ -755,9 +757,9 @@ function offerRowHtml(o) {
         </select>
       </td>
       <td>
-        <select data-f="funded">
-          <option value="affirm" ${o.funded === "affirm" ? "selected" : ""}>Affirm funded</option>
-          <option value="merchant" ${o.funded === "merchant" ? "selected" : ""}>Merchant funded</option>
+        <select data-f="funded" ${o.interestBearing ? "disabled" : ""}>
+          <option value="affirm" ${o.funded === "affirm" || o.interestBearing ? "selected" : ""}>Affirm funded</option>
+          <option value="merchant" ${o.funded === "merchant" && !o.interestBearing ? "selected" : ""}>Merchant funded</option>
         </select>
       </td>
       <td><button class="gil-link-btn" type="button" data-remove-offer="${o.id}">Remove</button></td>
@@ -766,12 +768,27 @@ function offerRowHtml(o) {
 }
 
 function readOfferRows() {
-  return [...document.querySelectorAll("#offer-rows tr")].map(row => ({
-    id: Number(row.dataset.id),
-    months: Number(row.querySelector('[data-f="months"]').value) || 1,
-    interestBearing: row.querySelector('[data-f="interestBearing"]').value === "1",
-    funded: row.querySelector('[data-f="funded"]').value
-  }));
+  return [...document.querySelectorAll("#offer-rows tr")].map(row => {
+    const interestBearing = row.querySelector('[data-f="interestBearing"]').value === "1";
+    return {
+      id: Number(row.dataset.id),
+      months: Number(row.querySelector('[data-f="months"]').value) || 1,
+      interestBearing,
+      funded: interestBearing ? "affirm" : row.querySelector('[data-f="funded"]').value
+    };
+  });
+}
+
+function wireOfferRowToggles() {
+  document.querySelectorAll('#offer-rows [data-f="interestBearing"]').forEach(sel => {
+    sel.addEventListener("change", () => {
+      const row = sel.closest("tr");
+      const fundedSel = row.querySelector('[data-f="funded"]');
+      const interestBearing = sel.value === "1";
+      fundedSel.disabled = interestBearing;
+      if (interestBearing) fundedSel.value = "affirm";
+    });
+  });
 }
 
 /* ============================================================
