@@ -1,6 +1,6 @@
 # affirm-amazon-test-storefront
 
-Internal test tool for Affirm's Amazon UK GIL (Global Installments Lending)
+Internal test tool for Affirm's Amazon GIL (Global Installments Lending)
 Pay-By-Affirm integration. Talks to Affirm's **production** API using a test
 merchant account — not a general-purpose demo, and not affiliated with or
 endorsed by Amazon.
@@ -33,7 +33,7 @@ this repo:
 
 1. Go to `https://<worker>.workers.dev/`, enter the shared password.
 2. Edit the cart to a specific total, adjust offer settings if needed
-   (installment terms, interest-bearing vs 0%, Affirm-funded vs
+   (installment terms, 0% vs interest-bearing toggle, Affirm-funded vs
    merchant-funded), then proceed to checkout.
 3. Fill in a UK delivery address (nothing pre-filled) and continue — this
    calls the real production `create_loan_application` endpoint.

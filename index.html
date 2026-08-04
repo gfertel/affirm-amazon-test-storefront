@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Amazon UK GIL — Test Storefront</title>
+<title>Amazon GIL — Test Storefront</title>
 
 <style>
   :root {
@@ -42,7 +42,7 @@
   .gil-logo { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
   .gil-logo:hover { color: #fff; text-decoration: none; }
   .gil-logo-dot { color: var(--orange); }
-  .gil-logo-uk { font-size: 13px; font-weight: 400; color: #ccc; margin-left: 4px; }
+  .gil-logo-sub { font-size: 13px; font-weight: 400; color: #ccc; margin-left: 4px; }
   .gil-header-nav a { color: #ddd; font-size: 13px; }
   .gil-header-nav a:hover { color: #fff; }
 
@@ -87,7 +87,6 @@
   .gil-manual-actions { display: flex; gap: 10px; }
   .gil-settings-block { display: flex; gap: 20px; margin-bottom: 20px; }
   .gil-radio-label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; }
-  .gil-toggle-label { font-size: 12px; color: var(--ink-soft); }
 
   .gil-error { background: #fff2f2; border: 1px solid #eb5757; color: var(--danger); padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-top: 14px; white-space: pre-wrap; word-break: break-word; }
   .gil-warn { background: #fff8ea; border: 1px solid #f0c14b; color: var(--warn); padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; }
@@ -125,7 +124,7 @@
 
 <script>
 /* ============================================================
-   Amazon UK GIL test storefront — single-file SPA.
+   Amazon GIL test storefront — single-file SPA.
    No backend of its own; all Affirm calls go through the
    password-gated Cloudflare Worker at /api/*, which injects
    production Basic Auth server-side. This page never holds
@@ -154,8 +153,8 @@ const GilStore = {
     return this._read("gil.offerSettings", {
       installmentType: "PayOverTime",
       offers: [
-        { id: 1, months: 3, interestBearing: false, rate: 0, funded: "affirm", subsidy: 0 },
-        { id: 2, months: 12, interestBearing: true, rate: 19.9, funded: "affirm", subsidy: 0 }
+        { id: 1, months: 3, interestBearing: false, funded: "affirm" },
+        { id: 2, months: 12, interestBearing: true, funded: "affirm" }
       ]
     });
   },
@@ -201,13 +200,16 @@ function withRufusFlag(url) {
 }
 
 /* financing_cost sign is the funding-source signal: 0 = Affirm funded,
-   negative = merchant (Amazon) funded, per PBA. */
+   negative = merchant (Amazon) funded, per PBA. Each offer is a toggle
+   between 0% and a fixed interest-bearing rate — no manual rate entry. */
+const GIL_INTEREST_RATE = 20;
+const GIL_MERCHANT_SUBSIDY = 10;
 function buildOfferDetails(offers) {
   return offers.map(o => ({
     number_of_installments: Number(o.months) || 1,
-    rate_of_interest: o.interestBearing ? Number(o.rate) || 0 : 0.0,
+    rate_of_interest: o.interestBearing ? GIL_INTEREST_RATE : 0.0,
     financing_cost: {
-      value: o.funded === "merchant" ? -Math.abs(Number(o.subsidy) || 0) : 0.0,
+      value: o.funded === "merchant" ? -GIL_MERCHANT_SUBSIDY : 0.0,
       unit: "GBP"
     }
   }));
@@ -268,7 +270,7 @@ function gilHeader() {
   return `
     <header class="gil-header">
       <div class="gil-header-inner">
-        <a href="#/" class="gil-logo">amazon<span class="gil-logo-dot">.</span><span class="gil-logo-uk">co.uk test</span></a>
+        <a href="#/" class="gil-logo">amazon<span class="gil-logo-dot">.</span><span class="gil-logo-sub">test</span></a>
         <nav class="gil-header-nav"><a href="#/settings">Offer settings</a> · <a href="#/manual">Manual controls</a></nav>
       </div>
     </header>
@@ -278,7 +280,7 @@ function gilHeader() {
 function gilFooter() {
   return `
     <footer class="gil-footer">
-      Amazon UK GIL test storefront — internal Affirm tool, not affiliated with or endorsed by Amazon.<br/>
+      Amazon GIL test storefront — internal Affirm tool, not affiliated with or endorsed by Amazon.<br/>
       Talks to Affirm's <strong>production</strong> Pay-By-Affirm API using a test merchant account.
     </footer>
   `;
@@ -684,7 +686,7 @@ function viewGilSettings() {
   renderGilShell(`
     <div class="gil-page">
       <h1>Offer settings</h1>
-      <p class="gil-sub">Controls the <code>installment_type</code> and <code>offer_details</code> sent on the next checkout. <code>financing_cost = 0</code> means Affirm funded; a negative <code>financing_cost</code> means merchant (Amazon) funded.</p>
+      <p class="gil-sub">Controls the <code>installment_type</code> and <code>offer_details</code> sent on the next checkout. <code>financing_cost = 0</code> means Affirm funded; merchant (Amazon) funded sends a fixed <code>financing_cost</code> of £${GIL_MERCHANT_SUBSIDY}.</p>
 
       <div class="gil-settings-block">
         <label class="gil-radio-label"><input type="radio" name="installment-type" value="PayOverTime" ${settings.installmentType === "PayOverTime" ? "checked" : ""} /> PayOverTime</label>
@@ -693,7 +695,7 @@ function viewGilSettings() {
 
       <table class="gil-cart-table">
         <thead>
-          <tr><th>Months</th><th>Interest</th><th>Rate %</th><th>Funded by</th><th>Subsidy (£)</th><th></th></tr>
+          <tr><th>Months</th><th>Interest</th><th>Funded by</th><th></th></tr>
         </thead>
         <tbody id="offer-rows">
           ${settings.offers.map(offerRowHtml).join("")}
@@ -707,12 +709,10 @@ function viewGilSettings() {
     </div>
   `);
 
-  wireOfferRowToggles();
-
   $("#add-offer").addEventListener("click", () => {
     const rows = readOfferRows();
     if (rows.length >= 3) return;
-    rows.push({ id: Date.now(), months: 6, interestBearing: false, rate: 0, funded: "affirm", subsidy: 0 });
+    rows.push({ id: Date.now(), months: 6, interestBearing: false, funded: "affirm" });
     GilStore.setOfferSettings({ installmentType: currentInstallmentType(), offers: rows });
     viewGilSettings();
   });
@@ -722,7 +722,7 @@ function viewGilSettings() {
       const rows = readOfferRows().filter(r => r.id !== Number(btn.dataset.removeOffer));
       GilStore.setOfferSettings({
         installmentType: currentInstallmentType(),
-        offers: rows.length ? rows : [{ id: Date.now(), months: 3, interestBearing: false, rate: 0, funded: "affirm", subsidy: 0 }]
+        offers: rows.length ? rows : [{ id: Date.now(), months: 3, interestBearing: false, funded: "affirm" }]
       });
       viewGilSettings();
     });
@@ -749,17 +749,17 @@ function offerRowHtml(o) {
     <tr data-id="${o.id}">
       <td><input type="number" data-f="months" min="1" step="1" value="${o.months}" style="width:64px;" /></td>
       <td>
-        <input type="checkbox" data-f="interestBearing" ${o.interestBearing ? "checked" : ""} />
-        <span class="gil-toggle-label">${o.interestBearing ? "Interest bearing" : "0% APR"}</span>
+        <select data-f="interestBearing">
+          <option value="0" ${o.interestBearing ? "" : "selected"}>0% APR</option>
+          <option value="1" ${o.interestBearing ? "selected" : ""}>Interest bearing (${GIL_INTEREST_RATE}%)</option>
+        </select>
       </td>
-      <td><input type="number" data-f="rate" min="0" step="0.1" value="${o.rate}" style="width:70px;" ${o.interestBearing ? "" : "disabled"} /></td>
       <td>
         <select data-f="funded">
           <option value="affirm" ${o.funded === "affirm" ? "selected" : ""}>Affirm funded</option>
           <option value="merchant" ${o.funded === "merchant" ? "selected" : ""}>Merchant funded</option>
         </select>
       </td>
-      <td><input type="number" data-f="subsidy" min="0" step="0.01" value="${o.subsidy}" style="width:80px;" ${o.funded === "merchant" ? "" : "disabled"} /></td>
       <td><button class="gil-link-btn" type="button" data-remove-offer="${o.id}">Remove</button></td>
     </tr>
   `;
@@ -769,27 +769,9 @@ function readOfferRows() {
   return [...document.querySelectorAll("#offer-rows tr")].map(row => ({
     id: Number(row.dataset.id),
     months: Number(row.querySelector('[data-f="months"]').value) || 1,
-    interestBearing: row.querySelector('[data-f="interestBearing"]').checked,
-    rate: Number(row.querySelector('[data-f="rate"]').value) || 0,
-    funded: row.querySelector('[data-f="funded"]').value,
-    subsidy: Number(row.querySelector('[data-f="subsidy"]').value) || 0
+    interestBearing: row.querySelector('[data-f="interestBearing"]').value === "1",
+    funded: row.querySelector('[data-f="funded"]').value
   }));
-}
-
-function wireOfferRowToggles() {
-  document.querySelectorAll('#offer-rows [data-f="interestBearing"]').forEach(cb => {
-    cb.addEventListener("change", () => {
-      const row = cb.closest("tr");
-      row.querySelector('[data-f="rate"]').disabled = !cb.checked;
-      row.querySelector(".gil-toggle-label").textContent = cb.checked ? "Interest bearing" : "0% APR";
-    });
-  });
-  document.querySelectorAll('#offer-rows [data-f="funded"]').forEach(sel => {
-    sel.addEventListener("change", () => {
-      const row = sel.closest("tr");
-      row.querySelector('[data-f="subsidy"]').disabled = sel.value !== "merchant";
-    });
-  });
 }
 
 /* ============================================================
