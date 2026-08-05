@@ -223,6 +223,44 @@ function toastGil(msg, kind = "info") {
   setTimeout(() => el.remove(), 4000);
 }
 
+/* ---------- shareable cart/offer config URLs ---------- */
+function encodeShareConfig(cart, offerSettings) {
+  return encodeURIComponent(JSON.stringify({ cart, offerSettings }));
+}
+
+function decodeShareConfig(raw) {
+  try {
+    const parsed = JSON.parse(decodeURIComponent(raw));
+    if (!parsed || !Array.isArray(parsed.cart) || !parsed.offerSettings) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+// Runs once at bootstrap. A `?config=` param carries a shared cart + offer
+// setup — apply it to localStorage, then strip it from the URL so it isn't
+// re-applied (and re-toasted) on every hashchange.
+function applySharedConfigFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("config");
+  if (!raw) return;
+
+  const shared = decodeShareConfig(raw);
+  if (shared) {
+    GilStore.setCartItems(shared.cart.length ? shared.cart : GilStore.getCartItems());
+    GilStore.setOfferSettings(shared.offerSettings);
+    toastGil("Loaded shared cart/offer configuration", "success");
+  } else {
+    toastGil("Shared config link was invalid — ignoring", "error");
+  }
+
+  params.delete("config");
+  const cleanSearch = params.toString();
+  const cleanUrl = window.location.pathname + (cleanSearch ? "?" + cleanSearch : "") + window.location.hash;
+  window.history.replaceState({}, "", cleanUrl);
+}
+
 /* ---------- Affirm API (same-origin, via the gating Worker) ---------- */
 async function gilFetch(path, { method = "POST", body = null } = {}) {
   try {
@@ -703,8 +741,17 @@ function viewGilSettings() {
       </table>
       <button class="gil-btn gil-btn-ghost" id="add-offer" type="button" ${settings.offers.length >= 3 ? "disabled" : ""}>+ Add offer (up to 3)</button>
 
-      <div style="margin-top:24px;">
+      <div style="margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;">
         <button class="gil-btn gil-btn-primary" id="save-settings" type="button">Save settings</button>
+        <button class="gil-btn gil-btn-ghost" id="create-url" type="button">Create shareable URL</button>
+      </div>
+      <div id="share-url-block" style="display:none; margin-top:16px;">
+        <label>Shareable URL — includes the cart above and these offer settings
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <input type="text" id="share-url" readonly style="flex:1;" />
+            <button class="gil-btn gil-btn-ghost" id="copy-url" type="button">Copy</button>
+          </div>
+        </label>
       </div>
     </div>
   `);
@@ -739,6 +786,38 @@ function viewGilSettings() {
     GilStore.setOfferSettings({ installmentType: currentInstallmentType(), offers });
     toastGil("Offer settings saved", "success");
   });
+
+  $("#create-url").addEventListener("click", () => {
+    const offers = readOfferRows();
+    if (!offers.length) { toastGil("Add at least one offer", "error"); return; }
+    for (const o of offers) {
+      if (!o.months || o.months < 1) { toastGil("Each offer needs a valid number of months", "error"); return; }
+    }
+    const offerSettings = { installmentType: currentInstallmentType(), offers };
+    GilStore.setOfferSettings(offerSettings);
+
+    const cart = GilStore.getCartItems();
+    const encoded = encodeShareConfig(cart, offerSettings);
+    const url = `${window.location.origin}/?config=${encoded}`;
+
+    $("#share-url-block").style.display = "block";
+    $("#share-url").value = url;
+    toastGil("Shareable URL created", "success");
+  });
+
+  const copyBtn = $("#copy-url");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      const input = $("#share-url");
+      input.select();
+      try {
+        await navigator.clipboard.writeText(input.value);
+        toastGil("Copied to clipboard", "success");
+      } catch {
+        toastGil("Copy failed — select and copy manually", "error");
+      }
+    });
+  }
 }
 
 function currentInstallmentType() {
@@ -808,6 +887,7 @@ if (window.location.hostname.endsWith("github.io")) {
     </div>
   `;
 } else {
+  applySharedConfigFromUrl();
   renderGilRoute();
 }
 </script>
