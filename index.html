@@ -368,7 +368,12 @@ function viewGilHome() {
     }));
   }
   function refreshSubtotal() {
-    $("#cart-subtotal").textContent = fmtGBP(cartSubtotal(readRows()));
+    const rows = readRows();
+    $("#cart-subtotal").textContent = fmtGBP(cartSubtotal(rows));
+    // Persist on every edit, not just Add/Remove/Checkout — otherwise
+    // navigating straight to Settings (e.g. to create a shareable URL)
+    // reads back the last-saved cart instead of what's on screen.
+    GilStore.setCartItems(rows);
   }
 
   document.querySelectorAll("#cart-rows input").forEach(inp => inp.addEventListener("input", refreshSubtotal));
